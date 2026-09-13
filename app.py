@@ -29,7 +29,9 @@ from flask_cors import CORS
 
 # ---------------------------------------------------------------------
 # Paths / app setup
-# ---------------------------------------------------------------------
+# -------------------------------------------------------------------@app.route('/')
+def home():
+    return render_template('01_splash.html')--
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 FRONTEND_DIR = os.path.join(BASE_DIR, "frontend")
