@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AgriPak - Logged Out Successfully</title>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary-green: #2D6A4F;
+            --accent-green: #52B788;
+            --light-green: #D8F3DC;
+            --dark-bg: #0B1912;
+            --card-bg: rgba(255, 255, 255, 0.08);
+            --card-border: rgba(255, 255, 255, 0.12);
+            --text-light: #F4F7F5;
+            --text-muted: #B0C4B1;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #0B1912 0%, #1B4332 50%, #2D6A4F 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-light);
+            padding: 1.5rem;
+        }
+
+        .logout-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--card-border);
+            border-radius: 28px;
+            padding: 2.5rem 2rem;
+            width: 100%;
+            max-width: 440px;
+            text-align: center;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1.2rem;
+        }
+
+        .icon-circle {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: rgba(82, 183, 136, 0.15);
+            border: 2px solid var(--accent-green);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 0.5rem;
+        }
+
+        .icon-circle svg {
+            width: 40px;
+            height: 40px;
+            fill: var(--accent-green);
+        }
+
+        .logout-card h2 {
+            font-size: 1.6rem;
+            font-weight: 700;
+        }
+
+        .logout-card p {
+            font-size: 0.95rem;
+            color: var(--text-muted);
+            line-height: 1.5;
+        }
+
+        .redirect-info {
+            font-size: 0.8rem;
+            color: var(--accent-green);
+            background: rgba(82, 183, 136, 0.1);
+            padding: 0.6rem 1rem;
+            border-radius: 12px;
+            border: 1px solid rgba(82, 183, 136, 0.2);
+            width: 100%;
+        }
+
+        .btn-signin {
+            display: inline-block;
+            width: 100%;
+            padding: 0.9rem;
+            background: linear-gradient(135deg, #52B788, #2D6A4F);
+            color: #fff;
+            text-decoration: none;
+            font-weight: 700;
+            border-radius: 14px;
+            box-shadow: 0 8px 20px rgba(82, 183, 136, 0.3);
+            transition: all 0.25s ease;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .btn-signin:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 25px rgba(82, 183, 136, 0.4);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="logout-card">
+        <div class="icon-circle">
+            <svg viewBox="0 0 24 24">
+                <path d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M11,16.5L6.5,12L7.91,10.59L11,13.67L16.09,8.58L17.5,10L11,16.5Z"/>
+            </svg>
+        </div>
+
+        <h2>You Have Been Logged Out!</h2>
+        <p>Thank you for using AgriPak. Your session has been safely ended.</p>
+
+        <div class="redirect-info">
+            You will be redirected to the Sign In page in a few seconds...
+        </div>
+
+        <a href="02_signin.html" class="btn-signin">Sign In Again</a>
+    </div>
+
+    <script>
+        // Automatic Auto-Redirect to Sign-In page after 4 seconds
+        setTimeout(function() {
+            window.location.href = "02_signin.html";
+        }, 4000);
+    </script>
+
+</body>
+</html>

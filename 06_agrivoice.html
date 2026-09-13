@@ -1,0 +1,1043 @@
+<!DOCTYPE html>
+<html lang="ur" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AgriPak - AgriVoice AI Assistant</title>
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --primary-green: #2D6A4F;
+            --accent-green: #52B788;
+            --dark-bg: #0B1912;
+            --card-bg: rgba(255, 255, 255, 0.08);
+            --card-border: rgba(255, 255, 255, 0.12);
+            --text-light: #F4F7F5;
+            --text-muted: #B0C4B1;
+            --bar-bg: #17251C;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+
+        html, body {
+            height: 100%;
+        }
+
+        body {
+            background: linear-gradient(135deg, #0B1912 0%, #1B4332 50%, #2D6A4F 100%);
+            background-size: 200% 200%;
+            animation: ambientShift 14s ease infinite;
+            min-height: 100vh;
+            color: var(--text-light);
+            display: flex;
+            flex-direction: column;
+            padding: 1.2rem;
+            overflow: hidden;
+        }
+
+        @keyframes ambientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .container {
+            width: 100%;
+            max-width: 480px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            padding-bottom: 10px;
+        }
+
+        /* Top Header */
+        .top-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-shrink: 0;
+        }
+
+        .back-btn {
+            width: 44px;
+            height: 44px;
+            border-radius: 14px;
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            text-decoration: none;
+            backdrop-filter: blur(12px);
+        }
+
+        .back-btn svg { width: 22px; height: 22px; fill: #fff; }
+
+        .top-nav-right {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .lang-selector {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            color: var(--accent-green);
+            padding: 0.4rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        /* Live Assistant Trigger Pill (top nav) */
+        .live-trigger-btn {
+            display: flex;
+            align-items: center;
+            gap: 0.35rem;
+            background: linear-gradient(135deg, rgba(82,183,136,0.25), rgba(45,106,79,0.25));
+            border: 1px solid var(--accent-green);
+            color: var(--accent-green);
+            padding: 0.4rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.78rem;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .live-trigger-btn svg { width: 15px; height: 15px; fill: var(--accent-green); }
+
+        /* Title / Status */
+        .ai-status-card {
+            text-align: center;
+            margin-top: 0.8rem;
+            flex-shrink: 0;
+        }
+
+        .ai-title {
+            font-size: 1.3rem;
+            font-weight: 800;
+            background: linear-gradient(90deg, #FFFFFF, var(--accent-green));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .ai-subtitle {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-top: 0.25rem;
+        }
+
+        /* Chat Log (scrollable conversation area) */
+        .chat-log {
+            flex: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 0.7rem;
+            padding: 1rem 0.2rem;
+            scrollbar-width: none;
+        }
+
+        .chat-log::-webkit-scrollbar { display: none; }
+
+        .msg-row {
+            display: flex;
+            width: 100%;
+            animation: msgIn 0.35s ease-out;
+        }
+
+        @keyframes msgIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .msg-row.user { justify-content: flex-end; }
+        .msg-row.bot { justify-content: flex-start; }
+
+        /* Highlighted bubble style used for important results, e.g. a leaf-scan diagnosis */
+        .msg-bubble.scan-alert {
+            border-color: var(--accent-green) !important;
+            box-shadow: 0 0 0 1px var(--accent-green), 0 0 22px rgba(82, 183, 136, 0.45);
+            animation: scanGlow 2.4s ease-in-out infinite;
+        }
+
+        @keyframes scanGlow {
+            0%, 100% { box-shadow: 0 0 0 1px var(--accent-green), 0 0 14px rgba(82, 183, 136, 0.3); }
+            50% { box-shadow: 0 0 0 1px var(--accent-green), 0 0 26px rgba(82, 183, 136, 0.6); }
+        }
+
+        .msg-bubble {
+            max-width: 82%;
+            padding: 0.8rem 1rem;
+            border-radius: 18px;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        .msg-row.bot .msg-bubble {
+            background: var(--card-bg);
+            backdrop-filter: blur(16px);
+            border: 1px solid var(--card-border);
+            border-bottom-left-radius: 6px;
+            color: var(--text-light);
+        }
+
+        .msg-row.user .msg-bubble {
+            background: linear-gradient(135deg, var(--accent-green), var(--primary-green));
+            border-bottom-right-radius: 6px;
+            color: #fff;
+        }
+
+        .msg-tag {
+            display: block;
+            font-size: 0.68rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: var(--accent-green);
+            margin-bottom: 0.3rem;
+            letter-spacing: 0.3px;
+        }
+
+        .msg-row.user .msg-tag { color: rgba(255,255,255,0.85); }
+
+        /* Photo bubble — the image fills the bubble edge-to-edge, no
+           filename or caption, just the picture itself. */
+        .msg-bubble.msg-bubble-image {
+            padding: 4px;
+            line-height: 0;
+            cursor: pointer;
+            transition: transform 0.18s ease;
+            animation: photoBubbleIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .msg-bubble.msg-bubble-image:hover { transform: scale(1.02); }
+        .msg-bubble.msg-bubble-image:active { transform: scale(0.97); }
+
+        @keyframes photoBubbleIn {
+            from { opacity: 0; transform: scale(0.85) translateY(8px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+
+        .msg-photo {
+            display: block;
+            width: 168px;
+            height: 168px;
+            object-fit: cover;
+            border-radius: 14px;
+        }
+
+        /* Full-size lightbox for tapping a chat photo */
+        .photo-lightbox {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.82);
+            backdrop-filter: blur(6px);
+            align-items: center;
+            justify-content: center;
+            z-index: 3000;
+            padding: 2rem;
+            cursor: zoom-out;
+            opacity: 0;
+            transition: opacity 0.22s ease;
+        }
+
+        .photo-lightbox.open { display: flex; opacity: 1; }
+
+        .photo-lightbox img {
+            max-width: 100%;
+            max-height: 100%;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+            animation: lightboxPop 0.25s ease-out;
+        }
+
+        @keyframes lightboxPop {
+            from { opacity: 0; transform: scale(0.9); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        /* Typing / processing indicator */
+        .typing-bubble {
+            display: flex;
+            gap: 4px;
+            align-items: center;
+            padding: 0.2rem 0;
+        }
+
+        .typing-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--accent-green);
+            animation: blink 1.2s infinite ease-in-out;
+        }
+
+        .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+        .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+
+        @keyframes blink {
+            0%, 100% { opacity: 0.3; transform: translateY(0); }
+            50% { opacity: 1; transform: translateY(-3px); }
+        }
+
+        /* Quick Voice Chips */
+        .quick-chips {
+            display: flex;
+            gap: 0.6rem;
+            overflow-x: auto;
+            padding-bottom: 0.6rem;
+            scrollbar-width: none;
+            flex-shrink: 0;
+        }
+
+        .quick-chips::-webkit-scrollbar { display: none; }
+
+        .chip-btn {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid var(--card-border);
+            color: var(--text-muted);
+            padding: 0.5rem 0.9rem;
+            border-radius: 20px;
+            font-size: 0.78rem;
+            white-space: nowrap;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .chip-btn:hover {
+            background: rgba(82, 183, 136, 0.2);
+            color: #fff;
+            border-color: var(--accent-green);
+        }
+
+        /* Bottom Input Area (holds either the normal chat bar OR the live bar) */
+        .input-area {
+            flex-shrink: 0;
+            position: relative;
+        }
+
+        /* Optional live status subtitle above the bar */
+        .live-subtitle {
+            text-align: center;
+            font-size: 0.78rem;
+            color: var(--accent-green);
+            margin-bottom: 0.5rem;
+            display: none;
+        }
+
+        /* Small floating camera preview shown above the live bar */
+        .live-cam-preview {
+            display: none;
+            width: 92px;
+            height: 92px;
+            border-radius: 18px;
+            overflow: hidden;
+            border: 2px solid var(--accent-green);
+            margin: 0 auto 0.6rem auto;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+            background: #000;
+        }
+
+        .live-cam-preview video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        /* ---------- Normal Chat Input Bar (matches reference layout) ---------- */
+        .chat-input-bar {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: var(--bar-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 32px;
+            padding: 0.5rem 0.6rem 0.5rem 0.5rem;
+            box-shadow: 0 12px 30px rgba(0,0,0,0.35);
+        }
+
+        .plus-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.08);
+            border: 1px solid var(--card-border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-light);
+            cursor: pointer;
+            flex-shrink: 0;
+            position: relative;
+            transition: background 0.2s, transform 0.2s;
+        }
+
+        .plus-btn:active { transform: scale(0.92); }
+        .plus-btn svg { width: 20px; height: 20px; fill: var(--text-light); }
+
+        .chat-text-input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            outline: none;
+            color: #fff;
+            font-size: 0.92rem;
+            min-width: 0;
+        }
+
+        .chat-text-input::placeholder { color: var(--text-muted); }
+
+        .input-mic-btn, .input-send-btn, .input-live-btn {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            flex-shrink: 0;
+            transition: transform 0.2s, background 0.2s;
+            background: transparent;
+        }
+
+        .input-mic-btn svg { width: 19px; height: 19px; fill: var(--text-muted); }
+        .input-live-btn svg { width: 19px; height: 19px; fill: var(--text-muted); }
+
+        .input-mic-btn.recording {
+            background: var(--accent-green);
+            position: relative;
+        }
+
+        .input-mic-btn.recording svg { fill: #fff; position: relative; z-index: 1; }
+
+        .input-mic-btn.recording::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: 50%;
+            background: var(--accent-green);
+            pointer-events: none;
+            animation: micRipple 1.4s ease-out infinite;
+        }
+
+        @keyframes micRipple {
+            0% { transform: scale(1); opacity: 0.6; }
+            100% { transform: scale(2.1); opacity: 0; }
+        }
+
+        .input-send-btn {
+            background: linear-gradient(135deg, var(--accent-green), var(--primary-green));
+            display: none;
+        }
+
+        .input-send-btn svg { width: 18px; height: 18px; fill: #fff; }
+
+        .input-mic-btn:active, .input-send-btn:active, .input-live-btn:active { transform: scale(0.9); }
+
+        /* Attachment Quick Menu (Plus button popup) */
+        .attach-menu {
+            position: absolute;
+            bottom: 52px;
+            left: 0;
+            background: var(--bar-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 18px;
+            padding: 0.5rem;
+            display: none;
+            flex-direction: column;
+            gap: 0.2rem;
+            width: 190px;
+            box-shadow: 0 12px 30px rgba(0,0,0,0.45);
+            z-index: 20;
+        }
+
+        .attach-menu.open { display: flex; animation: menuPop 0.2s ease-out; }
+
+        @keyframes menuPop {
+            from { opacity: 0; transform: translateY(8px) scale(0.96); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        .attach-item {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            padding: 0.6rem 0.7rem;
+            border-radius: 12px;
+            font-size: 0.82rem;
+            color: var(--text-light);
+            cursor: pointer;
+            background: none;
+            border: none;
+            text-align: left;
+            width: 100%;
+        }
+
+        .attach-item:hover { background: rgba(255,255,255,0.08); }
+        .attach-item svg { width: 18px; height: 18px; fill: var(--accent-green); flex-shrink: 0; }
+
+        /* ---------- Gemini-style Live Bar (sits at the bottom, page stays accessible) ---------- */
+        .live-bar {
+            display: none;
+            align-items: center;
+            gap: 0.6rem;
+            background: var(--bar-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 40px;
+            padding: 0.5rem;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.45);
+        }
+
+        .live-bar.open { display: flex; }
+
+        .live-cam-btn, .live-mic-btn, .live-close-btn2 {
+            width: 46px;
+            height: 46px;
+            border-radius: 50%;
+            border: 1px solid var(--card-border);
+            background: rgba(255,255,255,0.08);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            flex-shrink: 0;
+            transition: background 0.2s, transform 0.2s;
+        }
+
+        .live-cam-btn svg, .live-mic-btn svg, .live-close-btn2 svg {
+            width: 20px;
+            height: 20px;
+            fill: #fff;
+        }
+
+        .live-cam-btn.active {
+            background: var(--accent-green);
+            animation: camPulse 2s ease-in-out infinite;
+        }
+
+        @keyframes camPulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(82, 183, 136, 0.5); }
+            50% { box-shadow: 0 0 0 8px rgba(82, 183, 136, 0); }
+        }
+
+        .live-mic-btn.muted {
+            background: #E63946;
+        }
+
+        .live-mic-btn:not(.muted) {
+            position: relative;
+        }
+
+        .live-mic-btn:not(.muted)::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: 50%;
+            background: var(--accent-green);
+            opacity: 0.35;
+            pointer-events: none;
+            animation: micRipple 1.6s ease-out infinite;
+        }
+
+        .live-close-btn2 {
+            background: rgba(230, 57, 70, 0.85);
+            border-color: #E63946;
+        }
+
+        .live-cam-btn:active, .live-mic-btn:active, .live-close-btn2:active { transform: scale(0.9); }
+
+        /* Center animated pill / orb visualizer */
+        .live-pill-visual {
+            flex: 1;
+            height: 46px;
+            border-radius: 30px;
+            background: linear-gradient(90deg, rgba(82,183,136,0.35), rgba(116,198,157,0.55), rgba(82,183,136,0.35));
+            background-size: 200% 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            animation: shimmer 2.4s linear infinite;
+        }
+
+        @keyframes shimmer {
+            0% { background-position: 0% 50%; }
+            100% { background-position: 200% 50%; }
+        }
+
+        .live-pill-visual .live-wave-bar {
+            width: 3px;
+            height: 10px;
+            background: rgba(255,255,255,0.9);
+            border-radius: 3px;
+            animation: liveWave 1s infinite ease-in-out;
+        }
+
+        .live-pill-visual .live-wave-bar:nth-child(2) { animation-delay: 0.1s; }
+        .live-pill-visual .live-wave-bar:nth-child(3) { animation-delay: 0.2s; }
+        .live-pill-visual .live-wave-bar:nth-child(4) { animation-delay: 0.3s; }
+        .live-pill-visual .live-wave-bar:nth-child(5) { animation-delay: 0.4s; }
+
+        @keyframes liveWave {
+            0%, 100% { height: 8px; }
+            50% { height: 22px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+
+        <!-- Top Navigation -->
+        <div class="top-nav">
+            <!-- Redirect back to Dashboard -->
+            <a href="05_dashboard.html" class="back-btn" title="Back to Dashboard">
+                <svg viewBox="0 0 24 24"><path d="M20,11H7.83L13.42,5.41L12,4L4,12L12,20L13.41,18.59L7.83,13H20V11Z"/></svg>
+            </a>
+            <div class="top-nav-right">
+                <button class="live-trigger-btn" id="openLiveBtn" title="Start Live Assistant">
+                    <svg viewBox="0 0 24 24"><path d="M12,2A3,3 0 0,1 15,5V11A3,3 0 0,1 12,14A3,3 0 0,1 9,11V5A3,3 0 0,1 12,2M19,11C19,14.53 16.39,17.44 13,17.93V21H11V17.93C7.61,17.44 5,14.53 5,11H7A5,5 0 0,0 12,16A5,5 0 0,0 17,11H19Z"/></svg>
+                    Live
+                </button>
+                <div class="lang-selector">Urdu (اردو)</div>
+            </div>
+        </div>
+
+        <!-- Title / Status -->
+        <div class="ai-status-card">
+            <h2 class="ai-title">AgriVoice Assistant</h2>
+            <p class="ai-subtitle" id="statusMsg">لکھ کر یا بول کر اپنا سوال پوچھیں</p>
+        </div>
+
+        <!-- Chat Conversation Log -->
+        <div class="chat-log" id="chatLog">
+            <div class="msg-row bot">
+                <div class="msg-bubble">
+                    <span class="msg-tag">AgriVoice</span>
+                    سلام! میں آپ کا ایگری وائس اسسٹنٹ ہوں۔ میں آپ کی فصلوں، موسم، اور منڈی کے ریٹس سے متعلق مدد کر سکتا ہوں۔
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Question Chips -->
+        <div class="quick-chips">
+            <button class="chip-btn" onclick="sendQuickQuery('آج گندم کا ریٹ کیا ہے؟')">گندم کا لائیو ریٹ؟</button>
+            <button class="chip-btn" onclick="sendQuickQuery('کیا آج فصل کو پانی دینا چاہیے؟')">آبپاشی کا مشورہ؟</button>
+            <button class="chip-btn" onclick="sendQuickQuery('موسم کا حال بتاؤ')">آج کا موسم؟</button>
+        </div>
+
+        <!-- Bottom Input Area: normal chat bar OR the Gemini-style live bar -->
+        <div class="input-area">
+
+            <!-- Live status subtitle (optional) -->
+            <p class="live-subtitle" id="liveSubtitle">سن رہا ہوں...</p>
+
+            <!-- Live camera preview bubble -->
+            <div class="live-cam-preview" id="liveCamPreview">
+                <video id="liveCamVideo" autoplay muted playsinline></video>
+            </div>
+
+            <!-- Normal Chat Bar -->
+            <div class="chat-input-bar" id="normalBar">
+                <div style="position: relative;">
+                    <button class="plus-btn" id="plusBtn" title="Add">
+                        <svg viewBox="0 0 24 24"><path d="M19,13H13V19H11V13H5V11H11V5H13V11H19V13Z"/></svg>
+                    </button>
+                    <div class="attach-menu" id="attachMenu">
+                        <button class="attach-item" onclick="handleAttach('leaf')">
+                            <svg viewBox="0 0 24 24"><path d="M4,4H10V6H6V10H4V4M20,4V10H18V6H14V4H20M20,20H14V18H18V14H20V20M4,20V14H6V18H10V20H4M12,7A5,5 0 0,1 17,12A5,5 0 0,1 12,17A5,5 0 0,1 7,12A5,5 0 0,1 12,7Z"/></svg>
+                            Scan a Leaf Photo
+                        </button>
+                        <button class="attach-item" onclick="handleAttach('gallery')">
+                            <svg viewBox="0 0 24 24"><path d="M8.5,13.5L11,16.5L14.5,12L19,18H5M21,19V5C21,3.89 20.1,3 19,3H5A2,2 0 0,0 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19Z"/></svg>
+                            Upload from Gallery
+                        </button>
+                        <button class="attach-item" onclick="handleAttach('location')">
+                            <svg viewBox="0 0 24 24"><path d="M12,2C8.13,2 5,5.13 5,9C5,14.25 12,22 12,22C12,22 19,14.25 19,9C19,5.13 15.87,2 12,2M12,11.5A2.5,2.5 0 0,1 9.5,9A2.5,2.5 0 0,1 12,6.5A2.5,2.5 0 0,1 14.5,9A2.5,2.5 0 0,1 12,11.5Z"/></svg>
+                            Share Field Location
+                        </button>
+                    </div>
+                </div>
+
+                <input type="text" class="chat-text-input" id="chatInput" placeholder="اپنا سوال یہاں لکھیں..." autocomplete="off">
+
+                <button class="input-mic-btn" id="micBtn" title="Voice Input">
+                    <svg viewBox="0 0 24 24"><path d="M12,2A3,3 0 0,1 15,5V11A3,3 0 0,1 12,14A3,3 0 0,1 9,11V5A3,3 0 0,1 12,2M19,11C19,14.53 16.39,17.44 13,17.93V21H11V17.93C7.61,17.44 5,14.53 5,11H7A5,5 0 0,0 12,16A5,5 0 0,0 17,11H19Z"/></svg>
+                </button>
+
+                <button class="input-send-btn" id="sendBtn" title="Send">
+                    <svg viewBox="0 0 24 24"><path d="M2,21L23,12L2,3V10L17,12L2,14V21Z"/></svg>
+                </button>
+
+                <button class="input-live-btn" id="inputLiveBtn" title="Start Live Assistant">
+                    <svg viewBox="0 0 24 24"><path d="M12,3A1,1 0 0,1 13,4V10A1,1 0 0,1 12,11A1,1 0 0,1 11,10V4A1,1 0 0,1 12,3M8,7A1,1 0 0,1 9,8V16A1,1 0 0,1 8,17A1,1 0 0,1 7,16V8A1,1 0 0,1 8,7M16,7A1,1 0 0,1 17,8V16A1,1 0 0,1 16,17A1,1 0 0,1 15,16V8A1,1 0 0,1 16,7M4,10A1,1 0 0,1 5,11V13A1,1 0 0,1 4,14A1,1 0 0,1 3,13V11A1,1 0 0,1 4,10M20,10A1,1 0 0,1 21,11V13A1,1 0 0,1 20,14A1,1 0 0,1 19,13V11A1,1 0 0,1 20,10Z"/></svg>
+                </button>
+            </div>
+
+            <!-- Gemini-style Live Bar (replaces the chat bar in place, page above stays visible/usable) -->
+            <div class="live-bar" id="liveBar">
+                <button class="live-cam-btn" id="liveCamBtn" title="Show Live Camera">
+                    <svg viewBox="0 0 24 24"><path d="M17,10.5V7A1,1 0 0,0 16,6H4A1,1 0 0,0 3,7V17A1,1 0 0,0 4,18H16A1,1 0 0,0 17,17V13.5L21,17.5V6.5L17,10.5Z"/></svg>
+                </button>
+
+                <div class="live-pill-visual" id="livePillVisual">
+                    <span class="live-wave-bar"></span>
+                    <span class="live-wave-bar"></span>
+                    <span class="live-wave-bar"></span>
+                    <span class="live-wave-bar"></span>
+                    <span class="live-wave-bar"></span>
+                </div>
+
+                <button class="live-mic-btn" id="liveMicBtn" title="Mute">
+                    <svg viewBox="0 0 24 24"><path d="M12,2A3,3 0 0,1 15,5V11A3,3 0 0,1 12,14A3,3 0 0,1 9,11V5A3,3 0 0,1 12,2M19,11C19,14.53 16.39,17.44 13,17.93V21H11V17.93C7.61,17.44 5,14.53 5,11H7A5,5 0 0,0 12,16A5,5 0 0,0 17,11H19Z"/></svg>
+                </button>
+
+                <button class="live-close-btn2" id="closeLiveBtn" title="End Live Session">
+                    <svg viewBox="0 0 24 24"><path d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"/></svg>
+                </button>
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- Tap-to-enlarge view for any photo shared in the chat -->
+    <div class="photo-lightbox" id="photoLightbox" onclick="closeImageLightbox()">
+        <img id="lightboxImg" src="" alt="Shared photo">
+    </div>
+
+    <!-- Hidden picker used by the "Upload from Gallery" attach item -->
+    <input type="file" id="galleryFileInput" accept="image/*" style="display:none" onchange="handleGalleryFileChosen(event)">
+
+    <!-- Front-End Script Logic -->
+    <script src="api_config.js"></script>
+    <script>
+        const micBtn = document.getElementById('micBtn');
+        const sendBtn = document.getElementById('sendBtn');
+        const statusMsg = document.getElementById('statusMsg');
+        const chatLog = document.getElementById('chatLog');
+        const chatInput = document.getElementById('chatInput');
+        const plusBtn = document.getElementById('plusBtn');
+        const attachMenu = document.getElementById('attachMenu');
+
+        let isListening = false;
+
+        /* ---------- Chat bubble helpers ---------- */
+        function addMessage(text, sender, extraClass) {
+            const row = document.createElement('div');
+            row.className = 'msg-row ' + sender;
+
+            const bubble = document.createElement('div');
+            bubble.className = 'msg-bubble' + (extraClass ? ' ' + extraClass : '');
+
+            if (sender === 'bot') {
+                const tag = document.createElement('span');
+                tag.className = 'msg-tag';
+                tag.innerText = 'AgriVoice';
+                bubble.appendChild(tag);
+            }
+
+            const textNode = document.createElement('span');
+            textNode.innerText = text;
+            bubble.appendChild(textNode);
+
+            row.appendChild(bubble);
+            chatLog.appendChild(row);
+            chatLog.scrollTop = chatLog.scrollHeight;
+            return row;
+        }
+
+        // Renders a shared/scanned photo as its own chat bubble — just the
+        // picture, no filename or caption, tappable to view full-size.
+        function addImageMessage(dataUrl, sender) {
+            const row = document.createElement('div');
+            row.className = 'msg-row ' + sender;
+
+            const bubble = document.createElement('div');
+            bubble.className = 'msg-bubble msg-bubble-image';
+            bubble.title = 'Tap to view full size';
+            bubble.onclick = () => openImageLightbox(dataUrl);
+
+            const img = document.createElement('img');
+            img.src = dataUrl;
+            img.alt = 'Shared photo';
+            img.className = 'msg-photo';
+            bubble.appendChild(img);
+
+            row.appendChild(bubble);
+            chatLog.appendChild(row);
+            chatLog.scrollTop = chatLog.scrollHeight;
+            return row;
+        }
+
+        function openImageLightbox(dataUrl) {
+            document.getElementById('lightboxImg').src = dataUrl;
+            document.getElementById('photoLightbox').classList.add('open');
+        }
+
+        function closeImageLightbox() {
+            document.getElementById('photoLightbox').classList.remove('open');
+        }
+
+        function showTyping() {
+            const row = document.createElement('div');
+            row.className = 'msg-row bot';
+            row.id = 'typingRow';
+
+            const bubble = document.createElement('div');
+            bubble.className = 'msg-bubble typing-bubble';
+            bubble.innerHTML = '<span class="typing-dot"></span><span class="typing-dot"></span><span class="typing-dot"></span>';
+
+            row.appendChild(bubble);
+            chatLog.appendChild(row);
+            chatLog.scrollTop = chatLog.scrollHeight;
+        }
+
+        function removeTyping() {
+            const row = document.getElementById('typingRow');
+            if (row) row.remove();
+        }
+
+        function generateReplyLocal(queryText) {
+            if (queryText.startsWith('leaf-scan-result:')) {
+                const disease = queryText.replace('leaf-scan-result:', '').trim();
+                return `اسکین مکمل ہوگئی۔ تشخیص: ${disease}۔ متاثرہ پتوں کو فوری طور پر ہٹا دیں، متاثرہ حصے کو تلف کریں، اور تجویز کردہ فنجی سائیڈ کا اسپرے 3 دن کے اندر کریں۔ مزید سوال پوچھیں۔`;
+            } else if (queryText.includes('گندم')) {
+                return "آج لاہور منڈی میں گندم کا ریٹ 3,900 روپے فی من ہے۔";
+            } else if (queryText.includes('پانی')) {
+                return "مٹی میں نمی 68% ہے، آج فصل کو مزید پانی دینے کی ضرورت نہیں ہے۔";
+            } else if (queryText.includes('موسم')) {
+                return "آج کا درجہ حرارت 31 ڈگری سینٹی گریڈ ہے اور موسم بالکل صاف ہے۔";
+            } else {
+                return "جی، میں آپ کی بات سمجھ گیا۔ براہ کرم مزید تفصیل بتائیں تاکہ میں بہتر مشورہ دے سکوں۔";
+            }
+        }
+
+        async function handleReply(queryText, extraClass) {
+            statusMsg.innerText = "پروسیسنگ ہو رہی ہے...";
+            showTyping();
+            try {
+                const data = await apiPost('/api/chat', { message: queryText });
+                removeTyping();
+                statusMsg.innerText = "لکھ کر یا بول کر اپنا سوال پوچھیں";
+                addMessage(data.answer || generateReplyLocal(queryText), 'bot', extraClass);
+            } catch (err) {
+                // Backend offline → local fallback so UI still works
+                removeTyping();
+                statusMsg.innerText = "لکھ کر یا بول کر اپنا سوال پوچھیں";
+                addMessage(generateReplyLocal(queryText), 'bot', extraClass);
+            }
+        }
+
+        function sendQuickQuery(queryText) {
+            addMessage(queryText, 'user');
+            handleReply(queryText);
+        }
+
+        /* ---------- Text input bar ---------- */
+        function updateSendButtonVisibility() {
+            const hasText = chatInput.value.trim().length > 0;
+            sendBtn.style.display = hasText ? 'flex' : 'none';
+            micBtn.style.display = hasText ? 'none' : 'flex';
+        }
+
+        chatInput.addEventListener('input', updateSendButtonVisibility);
+
+        function submitTextMessage() {
+            const val = chatInput.value.trim();
+            if (!val) return;
+            addMessage(val, 'user');
+            chatInput.value = '';
+            updateSendButtonVisibility();
+            handleReply(val);
+        }
+
+        sendBtn.addEventListener('click', submitTextMessage);
+        chatInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                submitTextMessage();
+            }
+        });
+
+        /* ---------- Mic button (short voice capture, inline) ---------- */
+        micBtn.addEventListener('click', () => {
+            isListening = !isListening;
+
+            if (isListening) {
+                micBtn.classList.add('recording');
+                statusMsg.innerText = "سن رہا ہوں... اپنا سوال بولیں";
+                statusMsg.style.color = "var(--accent-green)";
+            } else {
+                micBtn.classList.remove('recording');
+                statusMsg.style.color = "var(--text-muted)";
+
+                // Simulate a captured voice query
+                const simulatedQuery = 'کیا آج فصل کو پانی دینا چاہیے؟';
+                addMessage(simulatedQuery, 'user');
+                handleReply(simulatedQuery);
+            }
+        });
+
+        /* ---------- Plus / attachment menu ---------- */
+        plusBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            attachMenu.classList.toggle('open');
+        });
+
+        document.addEventListener('click', (e) => {
+            if (!attachMenu.contains(e.target) && e.target !== plusBtn) {
+                attachMenu.classList.remove('open');
+            }
+        });
+
+        function handleAttach(type) {
+            attachMenu.classList.remove('open');
+            if (type === 'leaf') {
+                window.location.href = '07_leaf_scan.html';
+            } else if (type === 'gallery') {
+                document.getElementById('galleryFileInput').click();
+            } else if (type === 'location') {
+                addMessage('📍 Field location shared: Field A (Sahiwal)', 'user');
+                handleReply('location shared');
+            }
+        }
+
+        // Real gallery pick: read the photo the user actually chose and show
+        // it as its own bubble, instead of a placeholder text line.
+        function handleGalleryFileChosen(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                addImageMessage(e.target.result, 'user');
+                handleReply('leaf photo uploaded');
+            };
+            reader.readAsDataURL(file);
+            event.target.value = ''; // lets the same file be picked again later
+        }
+
+        /* ---------- Live Assistant Mode: Gemini-style bottom bar (page stays accessible) ---------- */
+        const normalBar = document.getElementById('normalBar');
+        const liveBar = document.getElementById('liveBar');
+        const liveSubtitle = document.getElementById('liveSubtitle');
+        const openLiveBtn = document.getElementById('openLiveBtn');
+        const inputLiveBtn = document.getElementById('inputLiveBtn');
+        const closeLiveBtn = document.getElementById('closeLiveBtn');
+        const liveMicBtn = document.getElementById('liveMicBtn');
+        const liveCamBtn = document.getElementById('liveCamBtn');
+        const liveCamPreview = document.getElementById('liveCamPreview');
+        const liveCamVideo = document.getElementById('liveCamVideo');
+
+        let liveMuted = false;
+        let camStream = null;
+
+        function openLiveBar() {
+            normalBar.style.display = 'none';
+            liveBar.classList.add('open');
+            liveSubtitle.style.display = 'block';
+            liveSubtitle.innerText = "سن رہا ہوں...";
+            liveSubtitle.style.color = "var(--accent-green)";
+        }
+
+        function closeLiveBar() {
+            liveBar.classList.remove('open');
+            normalBar.style.display = 'flex';
+            liveSubtitle.style.display = 'none';
+            stopCamera();
+            addMessage('لائیو سیشن ختم ہوگیا۔ خلاصہ: فصل کو پانی، موسم اور گندم کے ریٹ پر بات ہوئی۔', 'bot');
+        }
+
+        openLiveBtn.addEventListener('click', openLiveBar);
+        inputLiveBtn.addEventListener('click', openLiveBar);
+        closeLiveBtn.addEventListener('click', closeLiveBar);
+
+        liveMicBtn.addEventListener('click', () => {
+            liveMuted = !liveMuted;
+            liveMicBtn.classList.toggle('muted', liveMuted);
+            if (liveMuted) {
+                liveSubtitle.innerText = "مائیک بند ہے — دوبارہ کلک کریں";
+                liveSubtitle.style.color = "#EF9A9A";
+            } else {
+                liveSubtitle.innerText = "سن رہا ہوں...";
+                liveSubtitle.style.color = "var(--accent-green)";
+            }
+        });
+
+        /* Live camera preview — shows the crop/field via device camera while talking */
+        async function startCamera() {
+            try {
+                camStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+                liveCamVideo.srcObject = camStream;
+                liveCamPreview.style.display = 'block';
+                liveCamBtn.classList.add('active');
+            } catch (err) {
+                // Camera not available in this environment (e.g. permissions denied) — demo fallback
+                liveCamBtn.classList.add('active');
+                liveSubtitle.innerText = "کیمرہ دستیاب نہیں — ڈیمو موڈ";
+                liveSubtitle.style.display = 'block';
+            }
+        }
+
+        function stopCamera() {
+            if (camStream) {
+                camStream.getTracks().forEach(track => track.stop());
+                camStream = null;
+            }
+            liveCamPreview.style.display = 'none';
+            liveCamBtn.classList.remove('active');
+        }
+
+        liveCamBtn.addEventListener('click', () => {
+            if (liveCamBtn.classList.contains('active')) {
+                stopCamera();
+            } else {
+                startCamera();
+            }
+        });
+
+        /* ---------- Pick up a leaf-scan result handed off from 07_leaf_scan.html ---------- */
+        function checkForScannedImage() {
+            if (sessionStorage.getItem('hasScannedImage') === 'true') {
+                const disease = sessionStorage.getItem('scannedDisease') || 'Unknown Issue';
+                const imageData = sessionStorage.getItem('scannedImageData');
+
+                if (imageData) {
+                    addImageMessage(imageData, 'user');
+                } else {
+                    // Fallback for the rare case the photo didn't make it over
+                    // (e.g. storage quota) — the disease result still arrives.
+                    addMessage('📷 Leaf photo scanned for analysis', 'user');
+                }
+
+                handleReply('leaf-scan-result:' + disease, 'scan-alert');
+
+                // Clear the handoff flags so this doesn't replay on a page refresh
+                sessionStorage.removeItem('hasScannedImage');
+                sessionStorage.removeItem('scannedDisease');
+                sessionStorage.removeItem('scannedImageData');
+            }
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closeImageLightbox();
+        });
+
+        // Init
+        updateSendButtonVisibility();
+        checkForScannedImage();
+    </script>
+</body>
+</html>
